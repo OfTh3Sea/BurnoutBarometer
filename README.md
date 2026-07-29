@@ -94,7 +94,7 @@ This project is one of several emotional wellness tools in the OfTh3Sea portfoli
 |---|---|---|
 | Feelings Friends | 1–5 | Emotion identification with caregiver dashboard |
 | Feelings Explorer | 5–10 | Emotion vocabulary and exploration |
-| Mindscape | Adults | Emotion wheel for self-reflection |
+| Emotion Wheel | Adults | Emotion wheel for self-reflection |
 | Check In | Teens | Dark-mode check-in with counselor view |
 | The Conversation Guide | All | 20 difficult conversation topics with age-band filtering |
 | **Burnout Barometer** | 10–26+ | Burnout self-assessment across four life stages |
