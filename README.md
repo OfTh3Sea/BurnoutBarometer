@@ -1,3 +1,4 @@
+<img width="4640" height="2640" alt="burnout_barometer_poster" src="https://github.com/user-attachments/assets/340f4d02-24c4-4778-b9aa-418ac189eda5" />
 # 🌡️ Burnout Barometer
 ### Multi-Age Burnout Self-Assessment Tool
 
