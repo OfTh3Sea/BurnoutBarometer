@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burnout Barometer 🌡️</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #4fc3f7;
+    --primary-dark: #0288d1;
+    --bg-top: #e0f7fa;
+    --bg-bottom: #b2ebf2;
+    --card-bg: rgba(255,255,255,0.72);
+    --text: #1a3a4a;
+    --flame: #4fc3f7;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+    transition: background 0.8s ease;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 1.5rem 1.5rem;
+  }
+
+  .logo-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--primary-dark);
+    background: var(--card-bg);
+    border: 1.5px solid var(--primary);
+    border-radius: 100px;
+    padding: 0.3rem 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.8s ease;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.8s ease;
+  }
+
+  h1 span { color: var(--primary); transition: color 0.8s ease; font-style: italic; }
+
+  .subtitle {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    opacity: 0.75;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .age-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 1.5rem 1rem 0;
+  }
+
+  .age-tab {
+    cursor: pointer;
+    border: 2px solid var(--primary);
+    background: transparent;
+    border-radius: 100px;
+    padding: 0.5rem 1.2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .age-tab:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
+  .age-tab.active { background: var(--primary); color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+  }
+
+  /* THERMOMETER */
+  .thermo-wrap {
+    display: flex; flex-direction: column; align-items: center; margin: 1.5rem 0 2rem;
+  }
+  .thermo-label { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600; opacity: 0.6; margin-bottom: 0.75rem; }
+  .thermo-outer {
+    width: 60px; height: 200px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 100px;
+    border: 3px solid var(--primary);
+    position: relative; overflow: hidden;
+    transition: border-color 0.8s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+  .thermo-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--flame), var(--primary));
+    transition: height 0.8s cubic-bezier(.4,0,.2,1), background 0.8s ease;
+    height: 5%; border-radius: 0 0 100px 100px;
+  }
+  .thermo-pct { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900; color: var(--primary-dark); margin-top: 0.75rem; transition: color 0.8s ease; }
+  .thermo-status { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary-dark); opacity: 0.8; margin-top: 0.25rem; transition: color 0.8s ease; }
+
+  /* SECTION INTRO */
+  .section-intro {
+    background: var(--card-bg); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem;
+    border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    backdrop-filter: blur(8px); transition: background 0.8s ease;
+  }
+  .section-intro h2 { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.3rem; transition: color 0.8s ease; }
+  .section-intro p { font-size: 0.88rem; opacity: 0.75; line-height: 1.5; }
+
+  /* QUESTIONS */
+  .questions-list { display: flex; flex-direction: column; gap: 1.2rem; }
+  .question-card {
+    background: var(--card-bg); border-radius: 20px; padding: 1.25rem 1.4rem;
+    border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    backdrop-filter: blur(8px); transition: background 0.8s ease, transform 0.2s ease;
+    animation: slideUp 0.4s ease both;
+  }
+  .question-card:hover { transform: translateY(-2px); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-card p { font-size: 0.95rem; font-weight: 500; line-height: 1.45; margin-bottom: 1rem; }
+  .slider-row { display: flex; align-items: center; gap: 0.75rem; }
+  .slider-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.55; white-space: nowrap; min-width: 36px; }
+  .slider-label.right { text-align: right; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; flex: 1; height: 6px;
+    border-radius: 100px; outline: none; cursor: pointer; transition: background 0.3s ease;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--primary); border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: background 0.8s ease, transform 0.2s ease; cursor: grab;
+  }
+  input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); cursor: grabbing; }
+  .slider-val { font-family: 'Fraunces', serif; font-weight: 900; font-size: 1rem; color: var(--primary-dark); min-width: 28px; text-align: center; transition: color 0.8s ease; }
+
+  /* RESULTS */
+  .results-card {
+    display: none; background: var(--card-bg); border-radius: 24px; padding: 2rem; margin-top: 2rem;
+    border: 2px solid var(--primary); box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    backdrop-filter: blur(8px); transition: all 0.8s ease; animation: slideUp 0.5s ease both;
+  }
+  .results-card.visible { display: block; }
+  .results-card h3 { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 0.5rem; transition: color 0.8s ease; }
+  .result-message { font-size: 0.95rem; line-height: 1.6; opacity: 0.85; margin-bottom: 1.5rem; }
+  .tips-title { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.75rem; transition: color 0.8s ease; }
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 480px) { .tips-grid { grid-template-columns: 1fr; } }
+  .tip-pill {
+    background: rgba(255,255,255,0.6); border: 1.5px solid var(--primary); border-radius: 14px;
+    padding: 0.75rem 1rem; font-size: 0.84rem; line-height: 1.4; transition: border-color 0.8s ease;
+  }
+  .tip-pill::before { content: attr(data-emoji); display: block; font-size: 1.3rem; margin-bottom: 0.3rem; }
+
+  .btn-reset {
+    display: block; margin: 1.5rem auto 0; padding: 0.75rem 2rem; border-radius: 100px; border: none;
+    background: var(--primary); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    font-weight: 700; cursor: pointer; transition: background 0.8s ease, transform 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .btn-reset:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+  /* ── MOOD CANVAS (tween) ── */
+  .mood-canvas-section {
+    display: none; margin-top: 2rem; background: var(--card-bg); border-radius: 24px; padding: 1.5rem;
+    border: 2px solid var(--primary); box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    backdrop-filter: blur(8px); transition: border-color 0.8s ease; animation: slideUp 0.5s ease both;
+  }
+  .mood-canvas-section.visible { display: block; }
+  .mood-canvas-section h3 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 0.3rem; transition: color 0.8s ease; }
+  .mood-canvas-section p { font-size: 0.85rem; opacity: 0.7; margin-bottom: 1rem; }
+
+  .canvas-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
+  }
+  .color-swatch {
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent;
+    transition: transform 0.2s, border-color 0.2s; flex-shrink: 0;
+  }
+  .color-swatch:hover { transform: scale(1.2); }
+  .color-swatch.selected { border-color: var(--primary-dark); transform: scale(1.15); }
+
+  .emoji-stamp-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .emoji-stamp {
+    font-size: 1.4rem; cursor: pointer; border: none; background: rgba(255,255,255,0.6);
+    border-radius: 10px; padding: 0.2rem 0.4rem; transition: transform 0.15s;
+    line-height: 1;
+  }
+  .emoji-stamp:hover { transform: scale(1.3); }
+  .emoji-stamp.selected { background: var(--primary); }
+
+  .brush-size-row { display: flex; gap: 0.4rem; align-items: center; }
+  .brush-btn {
+    border: 2px solid var(--primary); background: transparent; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .brush-btn.selected { background: var(--primary); }
+  .brush-btn:hover { background: var(--primary); }
+
+  #moodCanvas {
+    width: 100%; height: 260px; border-radius: 16px; border: 2px dashed var(--primary);
+    cursor: crosshair; display: block; background: rgba(255,255,255,0.85);
+    touch-action: none; transition: border-color 0.8s ease;
+  }
+
+  .canvas-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .canvas-btn {
+    padding: 0.45rem 1rem; border-radius: 100px; border: 2px solid var(--primary);
+    background: transparent; color: var(--primary-dark); font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .canvas-btn:hover { background: var(--primary); color: #fff; }
+
+  /* ── TRASH IT BOARD (teen) ── */
+  .trash-section {
+    display: none; margin-top: 2rem; background: var(--card-bg); border-radius: 24px; padding: 1.5rem;
+    border: 2px solid var(--primary); box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    backdrop-filter: blur(8px); transition: border-color 0.8s ease; animation: slideUp 0.5s ease both;
+  }
+  .trash-section.visible { display: block; }
+  .trash-section h3 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 0.3rem; transition: color 0.8s ease; }
+  .trash-section p { font-size: 0.85rem; opacity: 0.7; margin-bottom: 1rem; }
+
+  .trash-input-row { display: flex; gap: 0.5rem; }
+  .trash-input {
+    flex: 1; padding: 0.7rem 1rem; border-radius: 14px; border: 2px solid var(--primary);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; background: rgba(255,255,255,0.8);
+    outline: none; color: var(--text); transition: border-color 0.8s ease;
+  }
+  .trash-input:focus { border-color: var(--primary-dark); }
+  .trash-throw-btn {
+    padding: 0.7rem 1.2rem; border-radius: 14px; border: none; background: var(--primary);
+    color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: background 0.8s ease, transform 0.2s; white-space: nowrap;
+  }
+  .trash-throw-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+  .trash-bin-area {
+    position: relative; min-height: 160px; margin-top: 1rem;
+    background: rgba(255,255,255,0.4); border-radius: 16px; border: 2px dashed var(--primary);
+    overflow: hidden; transition: border-color 0.8s ease;
+  }
+
+  .crumple {
+    position: absolute; cursor: pointer;
+    font-size: 0.8rem; font-weight: 600;
+    background: rgba(255,255,255,0.9); border-radius: 12px;
+    padding: 0.4rem 0.75rem; max-width: 140px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    animation: crumpleIn 0.4s cubic-bezier(.34,1.56,.64,1) both;
+    user-select: none; line-height: 1.3; word-break: break-word;
+    border: 1.5px solid var(--primary); color: var(--text);
+    transition: border-color 0.8s ease;
+  }
+
+  @keyframes crumpleIn {
+    from { transform: scale(0) rotate(-20deg); opacity: 0; }
+    to   { transform: scale(1) rotate(var(--rot, 0deg)); opacity: 1; }
+  }
+
+  .crumple:hover { filter: brightness(0.92); transform: scale(1.05) rotate(var(--rot, 0deg)); }
+
+  @keyframes shredOut {
+    0%   { transform: scale(1) rotate(var(--rot,0deg)); opacity: 1; }
+    40%  { transform: scale(1.3) rotate(calc(var(--rot,0deg) + 20deg)); opacity: 0.7; }
+    100% { transform: scale(0) translateY(60px) rotate(calc(var(--rot,0deg) + 180deg)); opacity: 0; }
+  }
+
+  .crumple.shredding { animation: shredOut 0.5s ease forwards; }
+
+  .trash-icon {
+    position: absolute; bottom: 12px; right: 16px; font-size: 2.5rem; opacity: 0.18; pointer-events: none;
+  }
+  .trash-hint { text-align: center; font-size: 0.75rem; opacity: 0.4; margin-top: 0.5rem; font-style: italic; }
+
+  /* ── GOAL CORKBOARD (all ages) ── */
+  .goal-section {
+    display: none; margin-top: 2rem; background: var(--card-bg); border-radius: 24px; padding: 1.5rem;
+    border: 2px solid var(--primary); box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    backdrop-filter: blur(8px); transition: border-color 0.8s ease; animation: slideUp 0.5s ease both;
+  }
+  .goal-section.visible { display: block; }
+  .goal-section h3 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 900; color: var(--primary-dark); margin-bottom: 0.3rem; transition: color 0.8s ease; }
+  .goal-section p { font-size: 0.85rem; opacity: 0.7; margin-bottom: 1rem; }
+
+  .goal-input-row { display: flex; gap: 0.5rem; }
+  .goal-input {
+    flex: 1; padding: 0.7rem 1rem; border-radius: 14px; border: 2px solid var(--primary);
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; background: rgba(255,255,255,0.8);
+    outline: none; color: var(--text); transition: border-color 0.8s ease;
+  }
+  .goal-input:focus { border-color: var(--primary-dark); }
+  .goal-add-btn {
+    padding: 0.7rem 1.2rem; border-radius: 14px; border: none; background: var(--primary);
+    color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: background 0.8s ease, transform 0.2s;
+  }
+  .goal-add-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+  .corkboard {
+    margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem; min-height: 60px;
+    background: rgba(210,180,140,0.18); border-radius: 16px; padding: 1rem;
+    border: 2px dashed rgba(180,140,100,0.35);
+  }
+
+  .sticky-note {
+    position: relative; background: #fffde7; border-radius: 4px 4px 4px 0;
+    padding: 1rem 0.85rem 0.75rem; font-size: 0.82rem; line-height: 1.4;
+    font-family: 'DM Sans', sans-serif; color: #444; max-width: 160px; min-width: 120px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.12);
+    transform: rotate(var(--note-rot, 0deg));
+    animation: pinDrop 0.45s cubic-bezier(.34,1.56,.64,1) both;
+    word-break: break-word;
+  }
+
+  .sticky-note::before {
+    content: '📌'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    font-size: 1.2rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+  }
+
+  .sticky-note.tween { background: #e8f5e9; }
+  .sticky-note.teen  { background: #ede7f6; }
+  .sticky-note.youngadult { background: #fff3e0; }
+  .sticky-note.adult { background: #e3f2fd; }
+
+  @keyframes pinDrop {
+    from { transform: scale(0.5) rotate(var(--note-rot, 0deg)) translateY(-20px); opacity: 0; }
+    to   { transform: scale(1)   rotate(var(--note-rot, 0deg)) translateY(0); opacity: 1; }
+  }
+
+  .sticky-delete {
+    position: absolute; top: 4px; right: 6px; font-size: 0.65rem; cursor: pointer;
+    opacity: 0.35; background: none; border: none; color: inherit; line-height: 1;
+  }
+  .sticky-delete:hover { opacity: 0.9; }
+
+  .goal-limit { font-size: 0.75rem; opacity: 0.45; margin-top: 0.5rem; font-style: italic; }
+
+  /* COMPARE */
+  .compare-btn {
+    display: flex; align-items: center; gap: 0.5rem; margin: 2rem auto 0;
+    padding: 0.65rem 1.5rem; border-radius: 100px; border: 2px solid var(--primary);
+    background: transparent; color: var(--primary-dark); font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+  }
+  .compare-btn:hover { background: var(--primary); color: #fff; }
+
+  .compare-drawer {
+    display: none; margin-top: 1.5rem; background: var(--card-bg); border-radius: 20px;
+    padding: 1.5rem; border: 1.5px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07); backdrop-filter: blur(8px);
+    animation: slideUp 0.4s ease both;
+  }
+  .compare-drawer.open { display: block; }
+  .compare-drawer h3 { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem; transition: color 0.8s ease; }
+  .compare-group { margin-bottom: 1.25rem; }
+  .compare-group-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; margin-bottom: 0.5rem; }
+  .compare-stressors { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .stressor-tag { background: rgba(255,255,255,0.7); border: 1.5px solid var(--primary); border-radius: 100px; padding: 0.3rem 0.85rem; font-size: 0.78rem; font-weight: 500; transition: border-color 0.8s ease; }
+
+  footer { text-align: center; padding: 1rem; font-size: 0.75rem; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-tag">OfTh3Sea · Emotional Wellness</div>
+  <h1>Burnout <span>Barometer</span></h1>
+  <p class="subtitle">Check in with yourself. See how close to the edge you are — and what to do about it.</p>
+</header>
+
+<div class="age-tabs">
+  <button class="age-tab active" data-group="tween" onclick="switchGroup('tween', this)">Ages 10–12</button>
+  <button class="age-tab" data-group="teen" onclick="switchGroup('teen', this)">Ages 13–17</button>
+  <button class="age-tab" data-group="youngadult" onclick="switchGroup('youngadult', this)">Ages 18–25</button>
+  <button class="age-tab" data-group="adult" onclick="switchGroup('adult', this)">Ages 26+</button>
+</div>
+
+<div class="container">
+
+  <div class="thermo-wrap">
+    <div class="thermo-label">Your Burnout Level</div>
+    <div class="thermo-outer">
+      <div class="thermo-fill" id="thermoFill"></div>
+    </div>
+    <div class="thermo-pct" id="thermoPct">0%</div>
+    <div class="thermo-status" id="thermoStatus">Just Getting Started</div>
+  </div>
+
+  <div class="section-intro">
+    <h2 id="groupTitle">For Ages 10–12</h2>
+    <p id="groupSubtitle">School, activities, friendships, family… it can be a lot. Let's see how you're really doing.</p>
+  </div>
+
+  <div class="questions-list" id="questionsList"></div>
+
+  <!-- Results -->
+  <div class="results-card" id="resultsCard">
+    <h3 id="resultHeadline">You're doing okay!</h3>
+    <p class="result-message" id="resultMessage"></p>
+    <div class="tips-title">Things that might help 💡</div>
+    <div class="tips-grid" id="tipsGrid"></div>
+    <button class="btn-reset" onclick="resetQuiz()">Start Over ↺</button>
+  </div>
+
+  <!-- MOOD CANVAS — tween only -->
+  <div class="mood-canvas-section" id="moodCanvasSection">
+    <h3>🎨 Paint How You Feel</h3>
+    <p>No rules. No wrong answers. Just draw it out.</p>
+    <div class="canvas-toolbar">
+      <div class="emoji-stamp-row" id="emojiStampRow">
+        <button class="emoji-stamp selected" data-emoji="draw" onclick="selectTool('draw', this)" title="Draw">✏️</button>
+        <button class="emoji-stamp" data-emoji="😤" onclick="selectTool('😤', this)">😤</button>
+        <button class="emoji-stamp" data-emoji="😭" onclick="selectTool('😭', this)">😭</button>
+        <button class="emoji-stamp" data-emoji="😴" onclick="selectTool('😴', this)">😴</button>
+        <button class="emoji-stamp" data-emoji="😊" onclick="selectTool('😊', this)">😊</button>
+        <button class="emoji-stamp" data-emoji="⭐" onclick="selectTool('⭐', this)">⭐</button>
+        <button class="emoji-stamp" data-emoji="💥" onclick="selectTool('💥', this)">💥</button>
+        <button class="emoji-stamp" data-emoji="🌈" onclick="selectTool('🌈', this)">🌈</button>
+        <button class="emoji-stamp" data-emoji="❤️" onclick="selectTool('❤️', this)">❤️</button>
+      </div>
+    </div>
+    <div class="canvas-toolbar">
+      <div id="colorSwatches" style="display:flex;gap:0.4rem;flex-wrap:wrap;"></div>
+      <div class="brush-size-row">
+        <button class="brush-btn selected" onclick="setBrush(6, this)" style="width:24px;height:24px;" title="Small">
+          <svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="currentColor"/></svg>
+        </button>
+        <button class="brush-btn" onclick="setBrush(14, this)" style="width:28px;height:28px;" title="Medium">
+          <svg width="10" height="10"><circle cx="5" cy="5" r="5" fill="currentColor"/></svg>
+        </button>
+        <button class="brush-btn" onclick="setBrush(26, this)" style="width:34px;height:34px;" title="Large">
+          <svg width="16" height="16"><circle cx="8" cy="8" r="8" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <canvas id="moodCanvas"></canvas>
+    <div class="canvas-actions">
+      <button class="canvas-btn" onclick="clearCanvas()">🗑 Clear</button>
+    </div>
+  </div>
+
+  <!-- TRASH IT BOARD — teen only -->
+  <div class="trash-section" id="trashSection">
+    <h3>🗑 Trash It</h3>
+    <p>Type a worry, a stressor, or something weighing on you. Then throw it away.</p>
+    <div class="trash-input-row">
+      <input class="trash-input" id="trashInput" type="text" placeholder="Write something you want to let go of..." maxlength="60">
+      <button class="trash-throw-btn" onclick="throwTrash()">Toss It 🌀</button>
+    </div>
+    <div class="trash-bin-area" id="trashBinArea">
+      <div class="trash-icon">🗑</div>
+    </div>
+    <div class="trash-hint">Tap a crumpled note to shred it</div>
+  </div>
+
+  <!-- GOAL CORKBOARD — all ages -->
+  <div class="goal-section" id="goalSection">
+    <h3>📌 One Thing I'll Do For Myself</h3>
+    <p id="goalSubtitle">Pin up to 3 goals for this week. Small counts.</p>
+    <div class="goal-input-row">
+      <input class="goal-input" id="goalInput" type="text" placeholder="I will..." maxlength="60">
+      <button class="goal-add-btn" onclick="addGoal()">Pin It 📌</button>
+    </div>
+    <div class="corkboard" id="corkboard"></div>
+    <div class="goal-limit" id="goalLimit"></div>
+  </div>
+
+  <!-- Compare -->
+  <button class="compare-btn" onclick="toggleCompare()">
+    <span>👀</span> See what other age groups deal with
+  </button>
+  <div class="compare-drawer" id="compareDrawer">
+    <h3>Burnout looks different at every age</h3>
+    <div id="compareContent"></div>
+  </div>
+
+</div>
+
+<footer>Made with care · Burnout Barometer · OfTh3Sea</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const groups = {
+  tween: {
+    title: "For Ages 10–12",
+    subtitle: "School, activities, friendships, family… it can be a lot. Let us see how you are really doing.",
+    goalSubtitle: "Pin up to 3 things you will do for yourself this week. Even tiny counts!",
+    stressors: ["Homework overload", "Sports & clubs", "Friend drama", "Wanting to please adults", "Not enough downtime"],
+    questions: [
+      "I feel tired even after sleeping a full night.",
+      "School feels like it never stops, even on weekends.",
+      "I do activities or clubs even when I do not really want to.",
+      "I feel like I have to be really good at everything.",
+      "I do not have much time to just play or do nothing.",
+      "I get frustrated or upset more easily than I used to.",
+      "I worry about disappointing my parents or teachers.",
+    ],
+    levels: [
+      { max: 20, headline: "You are doing great! 🌿", message: "Your load feels manageable right now. Keep paying attention to how you feel — that is a superpower." },
+      { max: 45, headline: "Feeling the pressure a little 🌤️", message: "Some things are weighing on you. It is totally normal, and it is smart that you noticed." },
+      { max: 70, headline: "Running pretty full 🌡️", message: "You are carrying a lot. It might be time to talk to someone you trust and let a few things go." },
+      { max: 100, headline: "You need a real break 🔥", message: "This is a lot for anyone, especially at your age. Please talk to a parent, teacher, or counselor. You deserve support." },
+    ],
+    tips: [
+      { emoji: "🎮", text: "Give yourself real free time, no goals, no rules." },
+      { emoji: "😴", text: "Prioritize sleep. Your brain is literally growing." },
+      { emoji: "💬", text: "Tell a trusted adult how you are really feeling." },
+      { emoji: "🚫", text: "It is okay to say no to one activity." },
+    ]
+  },
+  teen: {
+    title: "For Ages 13–17",
+    subtitle: "Academic pressure, social stuff, figuring out who you are — let us check your actual temperature.",
+    goalSubtitle: "Pin up to 3 intentions for this week. No pressure — just possibilities.",
+    stressors: ["GPA & college pressure", "Social media comparison", "Identity & belonging", "Family expectations", "Sleep deprivation"],
+    questions: [
+      "I feel mentally exhausted most days.",
+      "I compare myself to others online and feel like I am falling behind.",
+      "I feel pressure to be productive all the time — even breaks feel like wasted time.",
+      "I have trouble sleeping because my mind will not quiet down.",
+      "I feel like I cannot talk to people about how stressed I actually am.",
+      "I have lost interest in things I used to enjoy.",
+      "I feel like I have to perform a version of myself that is not really me.",
+    ],
+    levels: [
+      { max: 20, headline: "You are holding up well 💚", message: "You seem grounded right now. Stay connected to what actually recharges you." },
+      { max: 45, headline: "Some real tension here 🌤️", message: "You are not alone in feeling this. A few intentional resets could make a big difference." },
+      { max: 70, headline: "You are running on fumes ⚠️", message: "This is the zone where burnout quietly takes over. Rest is not lazy — it is necessary." },
+      { max: 100, headline: "Serious burnout territory 🔥", message: "Please do not white-knuckle through this. Talk to someone — a counselor, a trusted adult, or a crisis line if needed. You matter more than your productivity." },
+    ],
+    tips: [
+      { emoji: "📵", text: "Try a 24-hour break from social media. Notice how you feel." },
+      { emoji: "🧠", text: "Talk to your school counselor — that is literally what they are there for." },
+      { emoji: "🌙", text: "Protect your sleep like a non-negotiable." },
+      { emoji: "🎨", text: "Do one thing just for fun, with zero purpose." },
+    ]
+  },
+  youngadult: {
+    title: "For Ages 18–25",
+    subtitle: "Independence, identity, money, career, relationships — all at once. Let us see where you are at.",
+    goalSubtitle: "Pin up to 3 small acts of care for yourself this week.",
+    stressors: ["Financial stress", "Career uncertainty", "Social comparison", "Academic pressure", "Lack of structure or community"],
+    questions: [
+      "I feel overwhelmed by how much I am supposed to have figured out by now.",
+      "Financial stress follows me into moments that should be relaxing.",
+      "I feel behind compared to people my age.",
+      "I push through exhaustion instead of resting because I feel guilty slowing down.",
+      "I feel disconnected or lonely, even when I am around people.",
+      "My sense of purpose feels foggy or absent.",
+      "I am doing things for my resume or image more than for myself.",
+    ],
+    levels: [
+      { max: 20, headline: "Solid footing right now 🌱", message: "You have got some good balance happening. Keep checking in with yourself as things shift." },
+      { max: 45, headline: "Stretched thin in places 🌤️", message: "This is a genuinely hard time of life. The pressure is real — and so is your need for rest." },
+      { max: 70, headline: "Burnout is knocking 🚪", message: "You are pushing harder than your body and mind can sustain. Something needs to give — and it does not have to be you." },
+      { max: 100, headline: "Deep burnout zone 🔥", message: "This is more than stress — this is your system saying enough. Please reach out to a therapist, counselor, or trusted person. You are not a machine." },
+    ],
+    tips: [
+      { emoji: "💸", text: "Name one financial stressor. Make one small plan around it." },
+      { emoji: "🛋️", text: "Rest without earning it first. Seriously." },
+      { emoji: "🧭", text: "Reconnect with one thing you genuinely care about — not for your career." },
+      { emoji: "🤝", text: "Find or rebuild one consistent human connection." },
+    ]
+  },
+  adult: {
+    title: "For Ages 26+",
+    subtitle: "Career, relationships, caregiving, life load — you carry a lot. Let us take an honest look.",
+    goalSubtitle: "Pin up to 3 commitments to yourself this week. These are for you.",
+    stressors: ["Work demands", "Caregiving responsibilities", "Financial pressure", "Relationship strain", "Loss of personal identity"],
+    questions: [
+      "I cannot remember the last time I felt truly rested.",
+      "Work follows me into evenings, weekends, and my dreams.",
+      "I am responsible for others in ways that leave little room for myself.",
+      "I feel numb or detached from things that used to bring me joy.",
+      "I push through physical signs my body is giving me like headaches, tension, and exhaustion.",
+      "I feel resentful of my job, my commitments, or the people around me.",
+      "I have stopped investing in relationships or activities outside of obligation.",
+    ],
+    levels: [
+      { max: 20, headline: "You are in a good place 🌿", message: "You are maintaining some real balance. Protect what is working." },
+      { max: 45, headline: "Carrying more than you admit 🌤️", message: "The subtle burnout is real. Name what is draining you. Start there." },
+      { max: 70, headline: "Chronic overload territory ⚠️", message: "This is the slow burn that people miss until it becomes a crisis. Rest is not a reward. It is a requirement." },
+      { max: 100, headline: "Full burnout. Stop. 🔥", message: "You need more than a vacation. Please talk to a therapist or doctor. This level of depletion has physical and emotional consequences. You deserve real support." },
+    ],
+    tips: [
+      { emoji: "🙅", text: "Audit your commitments. Say no to one thing this week." },
+      { emoji: "🛁", text: "Schedule one hour of non-negotiable recovery time." },
+      { emoji: "🗣️", text: "Talk to a therapist, not just a friend who is also burned out." },
+      { emoji: "🌿", text: "Name what actually restores you — and do it on purpose." },
+    ]
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentGroup = 'tween';
+let sliderValues = {};
+let goals = [];
+
+// ── COLORS ───────────────────────────────────────────────────────────────────
+function updateColors(pct) {
+  const root = document.documentElement;
+  let primary, primaryDark, bgTop, bgBottom, flame;
+  if (pct <= 25) {
+    const t = pct / 25;
+    primary     = lerpColor('#4fc3f7','#81d4fa',t); primaryDark = lerpColor('#0288d1','#0277bd',t);
+    bgTop       = lerpColor('#e0f7fa','#e1f5fe',t); bgBottom    = lerpColor('#b2ebf2','#b3e5fc',t);
+    flame       = lerpColor('#4fc3f7','#29b6f6',t);
+  } else if (pct <= 50) {
+    const t = (pct-25)/25;
+    primary     = lerpColor('#81d4fa','#ffca28',t); primaryDark = lerpColor('#0277bd','#f9a825',t);
+    bgTop       = lerpColor('#e1f5fe','#fffde7',t); bgBottom    = lerpColor('#b3e5fc','#fff9c4',t);
+    flame       = lerpColor('#29b6f6','#ffca28',t);
+  } else if (pct <= 75) {
+    const t = (pct-50)/25;
+    primary     = lerpColor('#ffca28','#ff7043',t); primaryDark = lerpColor('#f9a825','#e64a19',t);
+    bgTop       = lerpColor('#fffde7','#fbe9e7',t); bgBottom    = lerpColor('#fff9c4','#ffccbc',t);
+    flame       = lerpColor('#ffca28','#ff7043',t);
+  } else {
+    const t = (pct-75)/25;
+    primary     = lerpColor('#ff7043','#b71c1c',t); primaryDark = lerpColor('#e64a19','#7f0000',t);
+    bgTop       = lerpColor('#fbe9e7','#ffebee',t); bgBottom    = lerpColor('#ffccbc','#ffcdd2',t);
+    flame       = lerpColor('#ff7043','#b71c1c',t);
+  }
+  root.style.setProperty('--primary', primary);
+  root.style.setProperty('--primary-dark', primaryDark);
+  root.style.setProperty('--bg-top', bgTop);
+  root.style.setProperty('--bg-bottom', bgBottom);
+  root.style.setProperty('--flame', flame);
+  root.style.setProperty('--text', pct > 70 ? '#2a0a00' : '#1a3a4a');
+  document.querySelectorAll('input[type=range]').forEach(s => {
+    const v = parseInt(s.value);
+    s.style.background = `linear-gradient(to right, ${primary} 0%, ${primary} ${v}%, #ddd ${v}%, #ddd 100%)`;
+  });
+}
+
+function lerpColor(a, b, t) {
+  const ah = parseInt(a.replace('#',''),16), bh = parseInt(b.replace('#',''),16);
+  const ar=(ah>>16)&0xff,ag=(ah>>8)&0xff,ab=ah&0xff;
+  const br=(bh>>16)&0xff,bg=(bh>>8)&0xff,bb=bh&0xff;
+  return '#'+((1<<24)+(Math.round(ar+(br-ar)*t)<<16)+(Math.round(ag+(bg-ag)*t)<<8)+Math.round(ab+(bb-ab)*t)).toString(16).slice(1);
+}
+
+// ── QUESTIONS ────────────────────────────────────────────────────────────────
+function renderQuestions() {
+  const g = groups[currentGroup];
+  const list = document.getElementById('questionsList');
+  list.innerHTML = '';
+  sliderValues = {};
+  g.questions.forEach((q, i) => {
+    sliderValues[i] = 50;
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.style.animationDelay = i * 0.06 + 's';
+    card.innerHTML = `<p>${q}</p>
+      <div class="slider-row">
+        <span class="slider-label">Not at all</span>
+        <input type="range" min="0" max="100" value="50" id="slider_${i}" oninput="onSlide(${i}, this.value)">
+        <span class="slider-val" id="val_${i}">5</span>
+        <span class="slider-label right">Always</span>
+      </div>`;
+    list.appendChild(card);
+  });
+  updateScore();
+}
+
+function onSlide(i, val) {
+  sliderValues[i] = parseInt(val);
+  document.getElementById('val_'+i).textContent = Math.round(val/10);
+  const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+  const slider = document.getElementById('slider_'+i);
+  slider.style.background = `linear-gradient(to right, ${primary} 0%, ${primary} ${val}%, #ddd ${val}%, #ddd 100%)`;
+  updateScore();
+}
+
+function updateScore() {
+  const vals = Object.values(sliderValues);
+  if (!vals.length) return;
+  const pct = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  document.getElementById('thermoFill').style.height = pct+'%';
+  document.getElementById('thermoPct').textContent = pct+'%';
+  const statuses = ['Feeling Good','Some Pressure','Getting Stretched','Running Hot','Critical Zone'];
+  document.getElementById('thermoStatus').textContent = statuses[Math.min(Math.floor(pct/20),4)];
+  updateColors(pct);
+  updateResults(pct);
+}
+
+function updateResults(pct) {
+  const g = groups[currentGroup];
+  const level = g.levels.find(l => pct <= l.max) || g.levels[g.levels.length-1];
+  document.getElementById('resultHeadline').textContent = level.headline;
+  document.getElementById('resultMessage').textContent = level.message;
+  const tips = document.getElementById('tipsGrid');
+  tips.innerHTML = '';
+  g.tips.forEach(t => {
+    const pill = document.createElement('div');
+    pill.className = 'tip-pill';
+    pill.setAttribute('data-emoji', t.emoji);
+    pill.textContent = t.text;
+    tips.appendChild(pill);
+  });
+  document.getElementById('resultsCard').classList.add('visible');
+
+  // show correct interactive sections
+  document.getElementById('moodCanvasSection').classList.toggle('visible', currentGroup === 'tween');
+  document.getElementById('trashSection').classList.toggle('visible', currentGroup === 'teen');
+  document.getElementById('goalSection').classList.add('visible');
+}
+
+function switchGroup(group, btn) {
+  currentGroup = group;
+  document.querySelectorAll('.age-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const g = groups[group];
+  document.getElementById('groupTitle').textContent = g.title;
+  document.getElementById('groupSubtitle').textContent = g.subtitle;
+  document.getElementById('goalSubtitle').textContent = g.goalSubtitle;
+  document.getElementById('resultsCard').classList.remove('visible');
+  document.getElementById('moodCanvasSection').classList.remove('visible');
+  document.getElementById('trashSection').classList.remove('visible');
+  document.getElementById('goalSection').classList.remove('visible');
+  goals = [];
+  document.getElementById('corkboard').innerHTML = '';
+  document.getElementById('goalLimit').textContent = '';
+  renderQuestions();
+}
+
+function resetQuiz() {
+  document.getElementById('resultsCard').classList.remove('visible');
+  document.getElementById('moodCanvasSection').classList.remove('visible');
+  document.getElementById('trashSection').classList.remove('visible');
+  document.getElementById('goalSection').classList.remove('visible');
+  renderQuestions();
+}
+
+// ── MOOD CANVAS ───────────────────────────────────────────────────────────────
+const PAINT_COLORS = ['#ef5350','#ff7043','#ffa726','#ffee58','#66bb6a','#26c6da','#42a5f5','#ab47bc','#ec407a','#8d6e63','#ffffff','#263238'];
+let painting = false;
+let brushSize = 6;
+let brushColor = '#ef5350';
+let currentTool = 'draw';
+let canvasCtx = null;
+
+function initCanvas() {
+  const canvas = document.getElementById('moodCanvas');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+  canvasCtx = canvas.getContext('2d');
+  canvasCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  canvasCtx.lineCap = 'round';
+  canvasCtx.lineJoin = 'round';
+  canvasCtx.fillStyle = 'rgba(255,255,255,0.85)';
+  canvasCtx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+  // draw events
+  canvas.addEventListener('mousedown', e => { painting = true; draw(e); });
+  canvas.addEventListener('mousemove', e => { if (painting) draw(e); });
+  canvas.addEventListener('mouseup', () => { painting = false; canvasCtx.beginPath(); });
+  canvas.addEventListener('mouseleave', () => { painting = false; canvasCtx.beginPath(); });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); painting = true; drawTouch(e); }, {passive: false});
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (painting) drawTouch(e); }, {passive: false});
+  canvas.addEventListener('touchend', () => { painting = false; canvasCtx.beginPath(); });
+
+  // color swatches
+  const sw = document.getElementById('colorSwatches');
+  sw.innerHTML = '';
+  PAINT_COLORS.forEach(c => {
+    const btn = document.createElement('div');
+    btn.className = 'color-swatch' + (c === brushColor ? ' selected' : '');
+    btn.style.background = c;
+    btn.style.border = c === '#ffffff' ? '3px solid #ccc' : '3px solid transparent';
+    btn.onclick = () => {
+      brushColor = c;
+      currentTool = 'draw';
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.querySelectorAll('.emoji-stamp').forEach(s => s.classList.remove('selected'));
+      document.querySelector('[data-emoji="draw"]').classList.add('selected');
+    };
+    sw.appendChild(btn);
+  });
+}
+
+function getPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function draw(e) {
+  const canvas = document.getElementById('moodCanvas');
+  const pos = getPos(e, canvas);
+  if (currentTool !== 'draw') {
+    stampEmoji(pos.x, pos.y, currentTool);
+    return;
+  }
+  canvasCtx.lineWidth = brushSize;
+  canvasCtx.strokeStyle = brushColor;
+  canvasCtx.lineTo(pos.x, pos.y);
+  canvasCtx.stroke();
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(pos.x, pos.y);
+}
+
+function drawTouch(e) {
+  const canvas = document.getElementById('moodCanvas');
+  const touch = e.touches[0];
+  const r = canvas.getBoundingClientRect();
+  const pos = { x: touch.clientX - r.left, y: touch.clientY - r.top };
+  if (currentTool !== 'draw') {
+    stampEmoji(pos.x, pos.y, currentTool);
+    painting = false;
+    return;
+  }
+  canvasCtx.lineWidth = brushSize;
+  canvasCtx.strokeStyle = brushColor;
+  canvasCtx.lineTo(pos.x, pos.y);
+  canvasCtx.stroke();
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(pos.x, pos.y);
+}
+
+function stampEmoji(x, y, emoji) {
+  canvasCtx.font = (brushSize * 3 + 16) + 'px serif';
+  canvasCtx.textAlign = 'center';
+  canvasCtx.textBaseline = 'middle';
+  canvasCtx.fillText(emoji, x, y);
+  canvasCtx.beginPath();
+}
+
+function selectTool(tool, btn) {
+  currentTool = tool;
+  document.querySelectorAll('.emoji-stamp').forEach(s => s.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (tool === 'draw') {
+    document.querySelectorAll('.color-swatch').forEach(s => {
+      if (s.style.background === 'rgb(239, 83, 80)') s.classList.add('selected');
+    });
+  }
+}
+
+function setBrush(size, btn) {
+  brushSize = size;
+  document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('moodCanvas');
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  canvasCtx.fillStyle = 'rgba(255,255,255,0.85)';
+  canvasCtx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+}
+
+// ── TRASH IT ──────────────────────────────────────────────────────────────────
+function throwTrash() {
+  const input = document.getElementById('trashInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const area = document.getElementById('trashBinArea');
+  const note = document.createElement('div');
+  note.className = 'crumple';
+  const rot = (Math.random() * 20 - 10).toFixed(1);
+  note.style.setProperty('--rot', rot + 'deg');
+  const maxLeft = Math.max(10, area.offsetWidth - 160);
+  const maxTop  = Math.max(10, area.offsetHeight - 80);
+  note.style.left = (Math.random() * maxLeft) + 'px';
+  note.style.top  = (Math.random() * maxTop)  + 'px';
+  note.textContent = text;
+  note.title = 'Tap to shred';
+  note.onclick = () => shredNote(note);
+  area.appendChild(note);
+}
+
+function shredNote(el) {
+  el.classList.add('shredding');
+  setTimeout(() => el.remove(), 500);
+}
+
+// handle Enter key in trash input
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('trashInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') throwTrash();
+  });
+  document.getElementById('goalInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addGoal();
+  });
+  initCanvas();
+});
+
+// ── GOAL CORKBOARD ────────────────────────────────────────────────────────────
+const noteColors = { tween: 'tween', teen: 'teen', youngadult: 'youngadult', adult: 'adult' };
+
+function addGoal() {
+  const input = document.getElementById('goalInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (goals.length >= 3) {
+    document.getElementById('goalLimit').textContent = 'You have 3 goals pinned — remove one to add another.';
+    return;
+  }
+  input.value = '';
+  goals.push(text);
+  renderCorkboard();
+  document.getElementById('goalLimit').textContent = goals.length === 3 ? 'Board full! You have got 3 great goals.' : '';
+}
+
+function removeGoal(i) {
+  goals.splice(i, 1);
+  renderCorkboard();
+  document.getElementById('goalLimit').textContent = '';
+}
+
+function renderCorkboard() {
+  const board = document.getElementById('corkboard');
+  board.innerHTML = '';
+  goals.forEach((g, i) => {
+    const rots = [-3, 1.5, -1];
+    const note = document.createElement('div');
+    note.className = 'sticky-note ' + (noteColors[currentGroup] || '');
+    note.style.setProperty('--note-rot', (rots[i % rots.length]) + 'deg');
+    note.innerHTML = `<button class="sticky-delete" onclick="removeGoal(${i})">✕</button>${g}`;
+    board.appendChild(note);
+  });
+}
+
+// ── COMPARE ───────────────────────────────────────────────────────────────────
+function toggleCompare() {
+  const drawer = document.getElementById('compareDrawer');
+  drawer.classList.toggle('open');
+  if (drawer.classList.contains('open')) {
+    const el = document.getElementById('compareContent');
+    el.innerHTML = '';
+    Object.entries(groups).forEach(([key, g]) => {
+      const div = document.createElement('div');
+      div.className = 'compare-group';
+      div.innerHTML = `<div class="compare-group-title">${g.title}</div>
+        <div class="compare-stressors">${g.stressors.map(s => '<span class="stressor-tag">'+s+'</span>').join('')}</div>`;
+      el.appendChild(div);
+    });
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderQuestions();
+</script>
+</body>
+</html>
