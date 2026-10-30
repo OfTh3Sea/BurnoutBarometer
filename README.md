@@ -97,7 +97,7 @@ Each group has 7 questions written specifically for that life stage — not gene
 ### Installation
 
 ```bash
-git clone https://github.com/OfTh3Sea/burnout-barometer.git
+git clone https://github.com/OfTh3Sea/BurnoutBarometer.git
 cd burnout-barometer
 open burnout-barometer.html
 ```
